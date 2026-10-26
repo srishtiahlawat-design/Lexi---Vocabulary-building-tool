@@ -1,0 +1,240 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Lexi</title>
+    <style>
+      /* The bundled fonts (fonts/ in the extension; see src/ui/fonts.ts). No third-party font host. */
+      @font-face { font-family: "Lexi Klee One"; font-weight: 400; src: url(fonts/KleeOne-Regular.woff2) format("woff2"); font-display: swap; }
+      @font-face { font-family: "Lexi Klee One"; font-weight: 600; src: url(fonts/KleeOne-SemiBold.woff2) format("woff2"); font-display: swap; }
+      @font-face { font-family: "Lexi Geist"; font-weight: 400 600; src: url(fonts/Geist-Variable.woff2) format("woff2"); font-display: swap; }
+      /* Side panel, final design (design.md): ivory paper ruled with soft blue lines every 61px, a red margin line at
+         x = 26, hand-drawn outlines (src/ui/handdrawn.ts) on inputs, chips and boxes, off-white CTAs. */
+      :root {
+        --paper: #f7f3ea; --off: #fffdf8; --border: #d8d3c9; --ink: #171717; --ink-2: #45423e; --ink-body: #242424; --ink-quote: #4a4742;
+        --label: #252525; --muted: #66615a; --faint: #8b8579; --rule: rgba(110, 155, 215, 0.3); --margin: rgba(214, 100, 96, 0.42);
+        --btn: #ede6d4; --btn-hover: #e6dec9; --success: #4f7053; --error: #a33333;
+        --serif: "Lexi Klee One", "Klee One", Georgia, "Times New Roman", serif;
+        --sans: "Lexi Geist", "Geist", -apple-system, "Segoe UI", Roboto, sans-serif;
+        --pad: 18px; --padL: 44px;
+        --ruled: repeating-linear-gradient(to bottom, transparent 0, transparent 60px, var(--rule) 60px, var(--rule) 61px);
+        --ease: cubic-bezier(0.22, 0.9, 0.3, 1);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body { font-family: var(--sans); background: var(--paper); color: var(--ink); }
+      [hidden] { display: none !important; }
+      button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
+      button:focus-visible, input:focus-visible { outline: 1.5px solid #77736c; outline-offset: 2px; }
+      svg { display: block; }
+
+      #app, .panel { display: flex; flex-direction: column; height: 100vh; }
+      /* .paper is the part of a screen above its footer or drawer; the margin line runs down it and stops there */
+      .paper { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+      .paper::before { content: ""; position: absolute; top: 0; bottom: 0; left: 26px; width: 1.5px; background: var(--margin); z-index: 3; pointer-events: none; }
+
+      .header, .subHeader { flex: none; height: 84px; display: flex; align-items: center; padding: 0 var(--pad) 0 var(--padL); border-bottom: 1px solid var(--rule); }
+      .header { justify-content: space-between; gap: 12px; }
+      .who { min-width: 0; }
+      .name { font-family: var(--serif); font-size: 25px; line-height: 30px; font-weight: 600; }
+      .label { font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      .who .label { margin-top: 4px; }
+      .headBtns { display: flex; gap: 8px; flex: none; }
+      .subHeader { gap: 12px; }
+      .subHeader .title { font-family: var(--serif); font-size: 23px; line-height: 30px; font-weight: 600; }
+      .subHeader .label { margin-left: auto; }
+
+      /* small icon buttons: a darker shade of the paper */
+      .iconBtn {
+        flex: none; width: 40px; height: 40px; border-radius: 10px; background: var(--btn); color: var(--ink);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .iconBtn svg { width: 18px; height: 18px; }
+      .iconBtn.back { width: auto; height: auto; background: none; border-radius: 0; color: var(--label); }
+      .iconBtn.back svg { width: 20px; height: 20px; }
+      .iconBtn:hover { background: var(--btn-hover); }
+      .iconBtn.back:hover { background: none; opacity: 0.6; }
+
+      /* CTAs: off-white, thin border, rounded, a soft shadow underneath */
+      .cta, .pillBtn, .primaryBtn {
+        height: 44px; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 10px; white-space: nowrap;
+        font-family: var(--sans); font-size: 14px; font-weight: 400; color: var(--ink-2); background: var(--off);
+        border: 1.5px solid var(--border); border-radius: 14px; box-shadow: 0 8px 14px -8px rgba(60, 50, 40, 0.3);
+      }
+      .cta svg, .pillBtn svg, .primaryBtn svg { width: 22px; height: 22px; stroke: var(--ink-2); }
+      .cta:hover:not(:disabled), .pillBtn:hover:not(:disabled), .primaryBtn:hover:not(:disabled) { background: #fff9ee; }
+      .cta:disabled, .primaryBtn:disabled { cursor: default; }
+
+      .list, .body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+      .list > *, .body > *, .results > * { flex: none; }
+      .results { flex: 1 0 auto; display: flex; flex-direction: column; }
+      /* the ruled paper under the last row, so the lines carry on to the bottom of the screen */
+      .list > .ruledFill, .results > .ruledFill, .body > .addCta { flex: 1 0 61px; }
+      .ruledFill { background: var(--ruled); }
+      /* week and topic headings: one ruled row, centred between its two lines */
+      .groupLabel { height: 61px; padding: 0 var(--pad) 1px var(--padL); display: flex; align-items: center; border-bottom: 1px solid var(--rule); }
+      .emptyRow { height: 61px; padding: 0 var(--pad) 1px var(--padL); display: flex; align-items: center; border-bottom: 1px solid var(--rule); color: var(--muted); font-size: 13px; }
+
+      /* word rows: one tap opens the word. A closed row is exactly one ruled row (60px + its line). */
+      .row { border-bottom: 1px solid var(--rule); }
+      .rowHead { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 11px var(--pad) 10px var(--padL); text-align: left; }
+      .rowText { min-width: 0; flex: 1; }
+      .row .word { font-family: var(--serif); font-size: 18px; line-height: 24px; font-weight: 600; }
+      .row .meaning { margin-top: 1px; font-size: 12px; line-height: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .row.open .meaning { display: none; }
+      .chev { flex: none; align-self: center; color: var(--muted); transition: transform 240ms var(--ease); }
+      .chev svg { width: 16px; height: 16px; }
+      .row.open .chev { transform: rotate(180deg); }
+      .rowBody, .cardBody { padding: 0 var(--pad) 15px var(--padL); }
+      .rowBody .pron, .cardBody .pron { font-family: var(--serif); font-size: 14px; color: var(--ink-2); }
+      /* Klee One has no italic: the part of speech is set in the body font, in a lighter colour */
+      .rowBody .pron i, .cardBody .pron i { margin-left: 10px; font-style: normal; font-family: var(--sans); font-size: 13px; color: var(--muted); }
+      .rowBody .full, .cardBody .full { margin-top: 8px; font-family: var(--sans); font-size: 14px; line-height: 22px; font-weight: 400; color: var(--ink-2); }
+      /* up to three similar words, each in a hand-drawn outline */
+      .simRow { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+      .simLabel { margin-right: 4px; font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      .simChip { position: relative; padding: 4px 10px; font-size: 12px; line-height: 16px; color: var(--ink-2); }
+      .simChip > span { position: relative; }
+      /* the example sits in a hand-drawn box; its heading starts the paragraph and the sentence wraps beneath it */
+      .exBox { position: relative; margin-top: 14px; padding: 10px 14px; }
+      .exBox .ex { position: relative; font-family: var(--serif); font-size: 13px; line-height: 22px; font-weight: 400; color: var(--ink-quote); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+      .exLabel { margin-right: 8px; font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+      /* search: the bar and the chips are one section with one rule under it */
+      .sTop { flex: none; padding: 16px var(--pad) 0 var(--padL); background: var(--paper); border-bottom: 1px solid var(--rule); }
+      .searchField, .addInput { position: relative; height: 42px; display: flex; align-items: center; gap: 10px; padding: 0 14px; background: var(--off); border-radius: 10px; }
+      .searchField > *, .addInput > * { position: relative; }
+      .sIcon { display: flex; color: var(--muted); flex: none; }
+      .searchField input, .addInput input { flex: 1; min-width: 0; width: auto; height: auto; margin: 0; padding: 0; border: none; border-radius: 0; background: none; outline: none; font-family: var(--sans); font-size: 14px; color: var(--ink); }
+      input::placeholder { color: var(--muted); }
+      .clearBtn { display: flex; flex: none; color: var(--muted); }
+      .clearBtn svg { width: 14px; height: 14px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0 16px; }
+      .chip { position: relative; padding: 5px 12px; display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; font-weight: 400; white-space: nowrap; color: var(--muted); }
+      .chip > * { position: relative; }
+      .chip .n { opacity: 0.7; }
+      .chip.active { background: var(--off); border-radius: 9px; color: var(--ink-2); font-weight: 600; }
+      .row .word b { font-weight: 700; }
+      .results.selecting { margin-top: 16px; }
+
+      /* empty state for a new user (nothing saved at all) */
+      .emptyState { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; padding: 48px 36px 40px 62px; }
+      .emptyArt svg { width: 232px; height: auto; }
+      .emptyBrand { margin-top: 28px; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      .emptyTitle { margin: 8px 0 0; font-family: var(--serif); font-size: 28px; line-height: 36px; font-weight: 600; color: var(--ink); }
+      .emptyText { margin: 12px 0 0; font-size: 14px; line-height: 21px; color: var(--ink-quote); }
+      .emptyCta { margin-top: 24px; padding: 0 24px; }
+      .emptyHint { margin-top: 14px; font-size: 12px; line-height: 16px; color: var(--muted); }
+      .emptyState.compact { padding-top: 28px; padding-bottom: 28px; }
+      .emptyState.compact .emptyArt svg { width: 168px; }
+      .emptyState.compact .emptyBrand { display: none; }
+      .emptyState.compact .emptyTitle { margin-top: 20px; font-size: 28px; line-height: 32px; }
+      .emptyState.compact .emptyText { margin-top: 10px; }
+      .emptyState.compact .emptyCta { margin-top: 18px; }
+      .emptyState.compact .emptyHint { display: none; }
+      .empty { color: var(--muted); font-size: 13px; padding: 12px var(--pad) 12px var(--padL); }
+
+      /* Search's delete icon and select mode */
+      .searchTitleWrap { flex: 1; min-width: 0; }
+      .searchTitleWrap .label { margin-top: 4px; margin-left: 0; }
+      .iconBtn.deleteBtn { color: #b4544f; }
+      .selectHeader { justify-content: space-between; }
+      .selectHeader .title { position: relative; top: -2px; font-size: 20px; }
+      .textBtn { font-size: 14px; font-weight: 400; color: var(--muted); }
+      .rowHead.selectRow { justify-content: flex-start; align-items: center; gap: 12px; }
+      .checkbox { position: relative; flex: none; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+      .checkbox.checked { background: var(--off); border-radius: 5px; color: var(--ink-2); }
+      .checkbox .tick { position: relative; display: flex; }
+      .deleteDrawer {
+        flex: none; padding: 22px var(--pad) 26px; background: var(--paper);
+        border-top: 1px solid var(--border); box-shadow: 0 -4px 24px rgba(160, 138, 92, 0.21);
+      }
+      .deleteDrawerWarning { font-size: 14px; line-height: 16px; color: var(--muted); }
+      .deleteDrawerBtn {
+        margin-top: 20px; width: 100%; height: 46px; display: flex; align-items: center;
+        justify-content: center; gap: 10px; font-size: 15px; font-weight: 500; color: #fff; background: var(--error); border-radius: 10px;
+      }
+      .deleteDrawerBtn:disabled { opacity: 0.5; }
+
+      /* today's-word banner: a yellow sticky note stuck on the ruled paper, for a widget closed without saving. Gone
+         once the word is saved or the day turns over. Its height snaps to whole ruled rows (see snapToRules). */
+      .todayBanner { flex: none; display: flow-root; background: var(--ruled); }
+      .noteCard {
+        position: relative; z-index: 1; margin: 16px 30px 0 var(--padL); padding: 24px 18px 20px; background: #faf2cb; border-radius: 2px;
+        transform: rotate(-0.8deg); transform-origin: 50% 0;
+        box-shadow: 0 1px 1px rgba(70, 55, 15, 0.1), 0 12px 16px -9px rgba(70, 55, 15, 0.38);
+      }
+      .noteShade { position: absolute; left: 0; right: 0; top: 0; height: 16px; background: linear-gradient(to bottom, rgba(70, 55, 15, 0.07), rgba(70, 55, 15, 0)); pointer-events: none; }
+      .noteHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+      .noteInfo { min-width: 0; flex: 1; }
+      .noteLabel { margin-bottom: 6px; font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
+      .noteWord { position: relative; width: fit-content; margin-top: 3px; font-family: var(--serif); font-size: 20px; line-height: 25px; font-weight: 600; color: var(--ink-2); }
+      .noteWord svg { position: absolute; left: -1px; bottom: -8px; width: 100%; height: 10px; overflow: visible; pointer-events: none; }
+      .notePron { margin-top: 16px; font-family: var(--serif); font-size: 11px; color: var(--muted); }
+      .notePron i { margin-left: 8px; font-style: normal; font-family: var(--sans); font-size: 12px; color: var(--muted); }
+      .noteAdd { position: relative; flex: none; height: 28px; display: flex; align-items: center; gap: 5px; padding: 0 10px; font-size: 12px; font-weight: 400; color: var(--ink-2); white-space: nowrap; }
+      .noteAdd > * { position: relative; }
+      .noteAdd svg:not([aria-hidden]) { width: 13px; height: 13px; }
+      .noteAdd:disabled { opacity: 0.75; }
+      .noteMeaning { margin-top: 16px; font-size: 13px; line-height: 20px; font-weight: 400; color: var(--muted); }
+      .noteSim { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+      .noteSimLabel { margin-right: 3px; font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      .noteChip { position: relative; padding: 3px 9px; font-size: 11px; line-height: 14px; color: var(--muted); }
+      .noteChip > span { position: relative; }
+      .noteEx { margin-top: 20px; font-family: var(--serif); font-size: 12px; line-height: 20px; font-weight: 400; color: var(--muted); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+      .noteExLabel { margin-right: 6px; font-family: var(--sans); font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      .noteCaption { position: relative; z-index: 1; margin: 20px 20px 0 48px; padding: 0 4px 12px; display: flex; align-items: flex-start; gap: 7px; font-size: 12px; line-height: 16px; color: var(--faint); }
+      .noteCaption svg { flex: none; width: 12px; height: 12px; margin-top: 2px; overflow: visible; }
+      /* shown for 5 seconds in place of the note once the word is added: a green sticky note */
+      .addedCard {
+        position: relative; z-index: 1; margin: 16px 30px 0 var(--padL); padding: 20px 14px; display: flex; align-items: center; gap: 12px;
+        background: #e3f1e6; border-radius: 2px; transform: rotate(-0.8deg); transform-origin: 50% 0; color: #3e7a58;
+        box-shadow: 0 1px 1px rgba(40, 70, 50, 0.1), 0 12px 16px -9px rgba(40, 70, 50, 0.34);
+      }
+      .addedIcon { flex: none; display: flex; }
+      .addedIcon svg { width: 24px; height: 24px; }
+      .addedTitle { font-size: 14px; font-weight: 600; line-height: 18px; }
+      .addedSub { margin-top: 2px; font-size: 12px; line-height: 16px; color: var(--muted); }
+      .addedWord { font-family: var(--serif); font-size: 13px; font-weight: 400; color: var(--ink); }
+
+      .footer { flex: none; height: 84px; padding: 0 var(--pad); border-top: 1px solid var(--rule); display: flex; align-items: center; gap: 12px; }
+      .pillBtn { flex: 1; }
+
+      /* Add a word: the input in the first ruled row, the word card under it, the button in the next ruled rows */
+      .addRow { flex: none; height: 61px; padding: 9px var(--pad) 0 var(--padL); background: var(--ruled); }
+      .addCard { flex: none; background: var(--paper); border-bottom: 1px solid var(--rule); }
+      .cardHead { min-height: 51px; padding: 11px var(--pad) 0 var(--padL); display: flex; align-items: center; font-family: var(--serif); font-size: 18px; line-height: 24px; font-weight: 600; }
+      .addCta { background: var(--ruled); }
+      .addCta .addBtn { width: 205px; margin: 8px auto 0; }
+      .addCta .addBtn.saved { color: var(--success); border-color: rgba(79, 112, 83, 0.45); box-shadow: none; }
+      .addCta .addBtn.saved svg { stroke: var(--success); }
+      .err { margin: 4px var(--pad) 8px var(--padL); font-size: 12px; }
+      .err { color: var(--error); }
+      .err:empty { display: none; }
+
+      .quizCard { text-align: center; padding: 56px var(--pad) 24px; }
+      .quizCard .prompt { padding: 0 0 12px; }
+      .quizCard .word { font-family: var(--serif); font-size: 42px; line-height: 52px; font-weight: 600; margin-bottom: 22px; }
+      .quizCard .revealBtn { flex: none; width: 240px; margin: 0 auto; }
+      .quizCard .meaning { font-family: var(--sans); font-size: 20px; line-height: 30px; font-weight: 400; color: var(--ink-2); margin-bottom: 22px; }
+      .quizActions { display: flex; gap: 12px; }
+
+      /* Motion - one set of timings and one easing across the extension (see src/ui/motion.ts): fast 160ms, base
+         240ms, slow 320ms, cubic-bezier(0.22, 0.9, 0.3, 1). Things ease in and glide; nothing snaps. All of it is off
+         for people who prefer reduced motion. */
+      @keyframes panelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+      @keyframes drawerUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+      @media (prefers-reduced-motion: no-preference) {
+        .panel.enter { animation: panelIn 240ms var(--ease); }
+        .addedCard, .addCard:not([hidden]), .addBtn:not([hidden]) { animation: fadeUp 240ms var(--ease); }
+        .deleteDrawer { animation: drawerUp 240ms var(--ease); }
+        .iconBtn, .cta, .pillBtn, .primaryBtn, .noteAdd, .chip, .checkbox, .textBtn, .deleteDrawerBtn { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, opacity 160ms ease; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="sidepanel.js"></script>
+  </body>
+</html>
