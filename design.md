@@ -209,4 +209,4 @@ These override the sections above where they differ. Source boards are in the Le
 - Popover: meaning 13px / 18px (4 lines, fade over the last 2), max width 280px. Board PopoverBody13.
 - Today's-word sticky note: example text 14px / 22px.
 - Options page restyled (board OptionsPageNew): paper card, red margin rule, hand-drawn inputs, CTA-style Save; the "Saved on this device" message appears only after Save and fades out after 4s; errors stay.
-- Welcome tab: after onboarding, a paper note "You're all set" with a "Got it" button; the tab closes itself after 8s.
+- Welcome tab: after onboarding, a paper note "You're all set" explaining how to add the API key (right-click the toolbar icon, choose Options, or the "Add my API key" button), with a "Got it" button. The tab closes only when "Got it" is clicked.

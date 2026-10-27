@@ -5,14 +5,18 @@ import { showWelcomeDone } from "./welcomeDone";
 
 // Glue for the onboarding pop-up (deliberately untested, like content/index.ts): injected by the background worker
 // into the active tab on first run, and loaded by welcome.html when there is no ordinary web page to show it on.
-// welcome.html is Lexi's own tab: once the dialog is done, leave a short note there and close the tab by itself.
+// welcome.html is Lexi's own tab: once the dialog is done, leave a short note there and close the tab when they click Got it.
 function onWelcomeTabDone(): void {
-  showWelcomeDone(document, () => {
-    chrome.tabs.getCurrent((tab) => {
-      if (tab?.id !== undefined) chrome.tabs.remove(tab.id);
-      else window.close();
-    });
-  });
+  showWelcomeDone(
+    document,
+    () => {
+      chrome.tabs.getCurrent((tab) => {
+        if (tab?.id !== undefined) chrome.tabs.remove(tab.id);
+        else window.close();
+      });
+    },
+    () => void chrome.runtime.openOptionsPage()
+  );
 }
 
 async function main() {
