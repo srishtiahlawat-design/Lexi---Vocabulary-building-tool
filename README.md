@@ -2,9 +2,9 @@
 
 # Lexi
 
-A word of the day for Chrome, with room to save the ones you find on your own.
+A vocabulary-building tool for Chrome: learn a new word every day, save any word you meet while browsing, and keep it all in a searchable library.
 
-Lexi shows one interesting word a day at the time you choose, lets you save any word by highlighting it on a page, and keeps everything in a searchable library in the browser's side panel.
+Lexi shows one interesting word a day at the time you choose, lets you save any word by highlighting it on a page, explains it with a meaning, pronunciation and example, and keeps everything in a searchable library in the browser's side panel.
 
 ## What it does
 
