@@ -85,7 +85,7 @@
       .row { border-bottom: 1px solid var(--rule); }
       .rowHead { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 11px var(--pad) 10px var(--padL); text-align: left; }
       .rowText { min-width: 0; flex: 1; }
-      .row .word { font-family: var(--serif); font-size: 18px; line-height: 24px; font-weight: 600; }
+      .row .word { font-family: var(--serif); font-size: 18px; line-height: 24px; font-weight: 600; color: var(--ink-2); }
       .row .meaning { margin-top: 1px; font-size: 12px; line-height: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .row.open .meaning { display: none; }
       .chev { flex: none; align-self: center; color: var(--muted); transition: transform 240ms var(--ease); }
@@ -204,7 +204,7 @@
       .addedIcon svg { width: 24px; height: 24px; }
       .addedTitle { font-size: 14px; font-weight: 600; line-height: 18px; }
       .addedSub { margin-top: 2px; font-size: 12px; line-height: 16px; color: var(--muted); }
-      .addedWord { font-family: var(--serif); font-size: 13px; font-weight: 400; color: var(--ink); }
+      .addedWord { font-family: var(--serif); font-size: 13px; font-weight: 400; color: var(--ink-2); }
 
       .footer { flex: none; height: 84px; padding: 0 var(--pad); border-top: 1px solid var(--rule); display: flex; align-items: center; gap: 12px; }
       .pillBtn { flex: 1; }
@@ -212,7 +212,7 @@
       /* Add a word: the input in the first ruled row, the word card under it, the button in the next ruled rows */
       .addRow { flex: none; height: 61px; padding: 9px var(--pad) 0 var(--padL); background: var(--ruled); }
       .addCard { flex: none; background: var(--paper); border-bottom: 1px solid var(--rule); }
-      .cardHead { min-height: 51px; padding: 11px var(--pad) 0 var(--padL); display: flex; align-items: center; font-family: var(--serif); font-size: 18px; line-height: 24px; font-weight: 600; }
+      .cardHead { min-height: 51px; padding: 11px var(--pad) 0 var(--padL); display: flex; align-items: center; font-family: var(--serif); font-size: 18px; line-height: 24px; font-weight: 600; color: var(--ink-2); }
       .addCta { background: var(--ruled); }
       .addCta .addBtn { width: 205px; margin: 8px auto 0; }
       .addCta .addBtn.saved { color: var(--success); border-color: rgba(79, 112, 83, 0.45); box-shadow: none; }
@@ -223,7 +223,7 @@
 
       .quizCard { text-align: center; padding: 56px var(--pad) 24px; }
       .quizCard .prompt { padding: 0 0 12px; }
-      .quizCard .word { font-family: var(--serif); font-size: 42px; line-height: 52px; font-weight: 600; margin-bottom: 22px; }
+      .quizCard .word { font-family: var(--serif); font-size: 42px; line-height: 52px; font-weight: 600; color: var(--ink-2); margin-bottom: 22px; }
       .quizCard .revealBtn { flex: none; width: 240px; margin: 0 auto; }
       .quizCard .meaning { font-family: var(--sans); font-size: 20px; line-height: 30px; font-weight: 400; color: var(--ink-2); margin-bottom: 22px; }
       .quizActions { display: flex; gap: 12px; }
