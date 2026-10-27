@@ -39,7 +39,7 @@ const CSS = `
   .head { flex: none; height: 76px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--rule); }
   .brand { display: flex; align-items: center; gap: 10px; }
   .brand svg { display: block; }
-  .brandName { font: 600 25px/30px var(--serif); }
+  .brandName { font: 600 20px/26px var(--serif); }
   .step { font: 500 11px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 
   .body { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 0 24px; }
@@ -47,7 +47,7 @@ const CSS = `
   .progress { display: flex; gap: 6px; padding: 0 32px; }
   .progress i { flex: 1; height: 3px; border-radius: 2px; background: var(--rule); }
   .progress i.on { background: var(--ink-2); }
-  h1 { margin: 28px 32px 0; font: 600 30px/38px var(--serif); }
+  h1 { margin: 28px 32px 0; font: 600 20px/28px var(--serif); }
   .sub { margin: 12px 32px 0; font: 400 15px/23px var(--sans); color: var(--ink-2); }
 
   .benefits { margin: 24px 32px 0; border-top: 1px solid var(--rule); }
@@ -308,11 +308,15 @@ const HOST_ID = "lexi-onboarding-host";
 
 // Thin wiring, like mountWidget: a fixed host element on the page holding the shadow root. Guarded so re-injecting
 // the script into the same tab doesn't stack a second dialog.
-export function mountOnboarding(deps: Omit<OnboardingDeps, "onDone">): void {
+export function mountOnboarding(deps: Omit<OnboardingDeps, "onDone">, onFinished?: () => void): void {
   if (document.getElementById(HOST_ID)) return;
   const host = document.createElement("div");
   host.id = HOST_ID;
   document.documentElement.appendChild(host);
   const root = host.attachShadow({ mode: "open" });
-  renderOnboarding(root, { ...deps, onDone: () => host.remove() });
+  renderOnboarding(root, { ...deps, onDone: () => {
+      host.remove();
+      onFinished?.();
+    },
+  });
 }

@@ -86,6 +86,8 @@ export interface StickOnOptions {
   rule: number;
   // The new word's row in the list, which slides in once the space closes. Optional.
   row?: HTMLElement | null;
+  // Called once the sequence has finished and cleaned up (not called when playStickOn returns false).
+  onDone?: () => void;
 }
 
 // Plays the sequence. Returns false (and touches nothing) when it can't or shouldn't animate, so the caller does its
@@ -152,6 +154,7 @@ export function playStickOn(o: StickOnOptions): boolean {
     drawn.forEach((el) => (el.style.strokeDasharray = ""));
     if (row) row.style.overflow = rowOverflow;
     banner.style.minHeight = `${toHeight}px`;
+    o.onDone?.();
   });
   return true;
 }

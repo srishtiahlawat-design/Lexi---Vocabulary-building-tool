@@ -99,6 +99,9 @@ function appendChips(parent: HTMLElement, words: string[], chipClass: string, st
 let animateNextRender = false;
 let renderedView: View | null = null;
 
+let stickBusy = false;
+let renderQueued = false;
+
 const scroller = (root: ParentNode): HTMLElement | null => root.querySelector<HTMLElement>(".list, .body");
 
 async function render(): Promise<void> {
@@ -110,6 +113,13 @@ async function render(): Promise<void> {
   else if (view === "search") next = renderSearch(all);
   else if (view === "settings") next = await renderSettingsView();
   else next = renderSave();
+
+  // Saving also writes to storage a second time (the widget state), which re-renders while the sticker is still
+  // landing: swapping the banner then restarted the sequence and made the list flash. Wait, and swap once it is over.
+  if (stickBusy) {
+    renderQueued = true;
+    return;
+  }
 
   const sameScreen = renderedView === view;
   const prevScroll = sameScreen ? scroller(app)?.scrollTop ?? 0 : 0;
@@ -141,8 +151,16 @@ async function render(): Promise<void> {
           fromHeight: prevBannerHeight,
           rule: RULE_PITCH,
           row: firstRow?.querySelector(".word")?.textContent?.toLowerCase() === justAdded.toLowerCase() ? firstRow : null,
+          onDone: () => {
+            stickBusy = false;
+            if (renderQueued) {
+              renderQueued = false;
+              void render();
+            }
+          },
         })
       : false;
+  if (stuck) stickBusy = true;
   if (!stuck) {
     if (banner) snapToRules(banner);
     if (banner && prevBannerHeight !== null) {
