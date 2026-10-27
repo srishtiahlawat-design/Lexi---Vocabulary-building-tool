@@ -203,3 +203,10 @@ These override the sections above where they differ. Source boards are in the Le
 1. **Ruled-line spacing, to look at later:** the banner board uses 58px between blue rules and the other side-panel boards 61px. Kept as drawn for now; decide on one pitch before or after the code pass.
 2. Text length limits (agreed, not coded): example sentence at most 14 words (about 90 characters, 3 lines) and meaning at most 2 lines (about 10 words); a prompt rule plus a 3-line clamp.
 3. Paper texture on the other screens, a cue-card flip for the library and a different CTA colour. Mentor feedback; each needs a canvas board and approval before code.
+
+## Approved 2026-10-27 (second round, coded)
+- All screen titles are 20px (Library, Add a word, Search, Settings, onboarding headings and brand name, empty-state title, options page "Lexi"). The widget word and popover word keep their own sizes.
+- Popover: meaning 13px / 18px (4 lines, fade over the last 2), max width 280px. Board PopoverBody13.
+- Today's-word sticky note: example text 14px / 22px.
+- Options page restyled (board OptionsPageNew): paper card, red margin rule, hand-drawn inputs, CTA-style Save; the "Saved on this device" message appears only after Save and fades out after 4s; errors stay.
+- Welcome tab: after onboarding, a paper note "You're all set" with a "Got it" button; the tab closes itself after 8s.

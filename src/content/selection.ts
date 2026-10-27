@@ -6,7 +6,7 @@ import { FONT_DISPLAY, FONT_BODY, loadLexiFonts } from "../ui/fonts";
 
 // The popover is as wide as its word and meaning need, between these two (the finalised canvas boards).
 const POPOVER_MIN_WIDTH = 190;
-const POPOVER_MAX_WIDTH = 262;
+const POPOVER_MAX_WIDTH = 280;
 const GAP = 12;
 // Wait for the selection to settle before asking the model what it means, so dragging across text or
 // re-selecting quickly doesn't fire a call for every stop along the way.
@@ -64,9 +64,9 @@ function injectStyles(root: ShadowRoot): void {
     .wordText { word-break: break-word; }
     .pos { font-family: ${FONT_BODY}; font-size: 11px; line-height: 14px; font-weight: 400; color: #66615A; }
     /* meaning: up to 4 lines, with the last 2 fading out when it runs longer so the button below sits cleanly */
-    .meaning { margin: 0 12px 0 34px; font-size: 12px; line-height: 16px; color: #45423E; max-height: 64px; overflow: hidden; position: relative; }
+    .meaning { margin: 0 12px 0 34px; font-size: 13px; line-height: 18px; color: #45423E; max-height: 72px; overflow: hidden; position: relative; }
     .meaning:empty { display: none; }
-    .meaning.clipped { -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 32px, transparent 64px); mask-image: linear-gradient(to bottom, #000 0, #000 32px, transparent 64px); }
+    .meaning.clipped { -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 36px, transparent 72px); mask-image: linear-gradient(to bottom, #000 0, #000 36px, transparent 72px); }
     .meaning.muted { color: #8A857B; }
     .skeleton { display: flex; flex-direction: column; gap: 6px; margin: 2px 12px 0 34px; }
     .skeleton i { display: block; height: 8px; border-radius: 4px; background: #E6DFCF; }
