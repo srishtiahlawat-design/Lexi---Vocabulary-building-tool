@@ -17,7 +17,8 @@ import { createProfileStore } from "../lib/profile";
 import { deleteAccountData } from "../lib/account";
 import { requestSignIn, requestShowOnboarding } from "../lib/messages";
 import { renderSettings, SETTINGS_CSS } from "./settings";
-import { animateHeight, collapseAndRemove, collapseSection, expandSection } from "../ui/motion";
+import { animateHeight, collapseAndRemove, collapseSection, expandSection, reducedMotion } from "../ui/motion";
+import { playStickOn, STICK_TOTAL_MS } from "../ui/stickOn";
 import {
   ICON_BOOK,
   ICON_CHECK_CIRCLE,
@@ -112,7 +113,8 @@ async function render(): Promise<void> {
 
   const sameScreen = renderedView === view;
   const prevScroll = sameScreen ? scroller(app)?.scrollTop ?? 0 : 0;
-  const prevBannerHeight = sameScreen ? app.querySelector<HTMLElement>(".todayBanner")?.offsetHeight ?? null : null;
+  const prevBanner = sameScreen ? app.querySelector<HTMLElement>(".todayBanner") : null;
+  const prevBannerHeight = prevBanner?.offsetHeight ?? null;
 
   app.replaceChildren(next);
   renderedView = view;
@@ -128,10 +130,25 @@ async function render(): Promise<void> {
   // The banner swapped for the confirmation (or back) has a different height: glide between the two so the list
   // moves up smoothly instead of jumping.
   const banner = next.querySelector<HTMLElement>(".todayBanner");
-  if (banner) snapToRules(banner);
-  if (banner && prevBannerHeight !== null) {
-    const height = banner.offsetHeight;
-    if (Math.abs(height - prevBannerHeight) > 1) void animateHeight(banner, prevBannerHeight, height);
+  // "Add" on the banner: the green confirmation sticks on top of the yellow note (see ui/stickOn.ts) instead of
+  // swapping with it. Falls through to the plain swap when there is nothing to stick to or motion is reduced.
+  const firstRow = next.querySelector<HTMLElement>(".row");
+  const stuck =
+    banner && prevBanner && prevBannerHeight !== null && justAdded && prevBanner.querySelector(".noteCard") && banner.querySelector(".addedCard")
+      ? playStickOn({
+          banner,
+          oldBanner: prevBanner,
+          fromHeight: prevBannerHeight,
+          rule: RULE_PITCH,
+          row: firstRow?.querySelector(".word")?.textContent?.toLowerCase() === justAdded.toLowerCase() ? firstRow : null,
+        })
+      : false;
+  if (!stuck) {
+    if (banner) snapToRules(banner);
+    if (banner && prevBannerHeight !== null) {
+      const height = banner.offsetHeight;
+      if (Math.abs(height - prevBannerHeight) > 1) void animateHeight(banner, prevBannerHeight, height);
+    }
   }
 }
 
@@ -276,7 +293,7 @@ function backHeader(title: string): HTMLDivElement {
 // After "Add" on the today's-word banner, a confirmation card takes the banner's place for a few seconds (long
 // enough to notice the word landed in the list) and then the space closes. Module-level like searchQuery, so it
 // survives the re-render the save itself triggers.
-const ADDED_CONFIRMATION_MS = 5000;
+const ADDED_CONFIRMATION_MS = 5000; // how long it stays once the stick-on sequence has finished
 let justAdded: string | null = null;
 let justAddedTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -289,26 +306,31 @@ function clearAddedConfirmation(): void {
 function showAddedConfirmation(word: string): void {
   clearAddedConfirmation();
   justAdded = word;
+  // the confirmation's 5 seconds start once the sticker has landed and the list has settled (STICK_TOTAL_MS)
+  const wait = ADDED_CONFIRMATION_MS + (reducedMotion() ? 0 : STICK_TOTAL_MS);
   justAddedTimer = setTimeout(async () => {
     justAddedTimer = null;
     // Fade the confirmation out while its space closes up, so the list glides to the top. Only once that is done is
     // the panel re-rendered - and by then the layout already matches, so nothing visibly changes.
     const banner = view === "library" ? app.querySelector<HTMLElement>(".todayBanner") : null;
-    if (banner) await collapseAndRemove(banner);
+    if (banner) await collapseAndRemove(banner, undefined, 8);
     justAdded = null;
     if (view === "library") render();
-  }, ADDED_CONFIRMATION_MS);
+  }, wait);
 }
 
 function renderAddedConfirmation(word: string): HTMLDivElement {
   const wrap = document.createElement("div");
   wrap.className = "todayBanner";
   wrap.innerHTML = `
-    <div class="addedCard" role="status">
-      <span class="addedIcon" aria-hidden="true">${ICON_CHECK_CIRCLE}</span>
-      <div>
-        <div class="addedTitle">Added to your library</div>
-        <div class="addedSub"><span class="addedWord"></span> is now in this week's list.</div>
+    <div class="addedSpin">
+      <div class="addedCard" role="status">
+        <div class="addedShade" aria-hidden="true"></div>
+        <span class="addedIcon" aria-hidden="true">${ICON_CHECK_CIRCLE}</span>
+        <div>
+          <div class="addedTitle">Added to your library</div>
+          <div class="addedSub"><span class="addedWord"></span> is now in this week's list.</div>
+        </div>
       </div>
     </div>
   `;
@@ -384,7 +406,7 @@ async function renderTodayWordBanner(all: CompactWordRecord[]): Promise<HTMLDivE
       <div class="noteSim" hidden><span class="noteSimLabel">Similar</span></div>
       <div class="noteEx" hidden><span class="noteExLabel">Example</span><span class="noteExText"></span></div>
     </div>
-    <div class="noteCaption">${NOTE_STAR}<span>Add the word to your library before the day ends.</span></div>
+    <div class="noteCaption">${NOTE_STAR}<span>Add it before the day ends.</span></div>
     <div class="err"></div>
   `;
   wrap.querySelector(".nw")!.textContent = record.word;

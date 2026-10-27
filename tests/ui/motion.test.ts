@@ -86,4 +86,13 @@ describe("motion", () => {
     expect(animate).not.toHaveBeenCalled();
     expect(node.isConnected).toBe(false);
   });
+
+  it("can lift the element as it fades and closes", async () => {
+    const node = el();
+    const animate = withAnimate(node);
+    await collapseAndRemove(node, MOTION.slow, 8);
+    const [frames] = animate.mock.calls[0];
+    expect(frames[0].transform).toBe("translateY(0)");
+    expect(frames[1].transform).toBe("translateY(-8px)");
+  });
 });

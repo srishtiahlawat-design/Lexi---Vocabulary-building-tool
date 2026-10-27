@@ -36,7 +36,7 @@
       .header, .subHeader { flex: none; height: 84px; display: flex; align-items: center; padding: 0 var(--pad) 0 var(--padL); border-bottom: 1px solid var(--rule); }
       .header { justify-content: space-between; gap: 12px; }
       .who { min-width: 0; }
-      .name { font-family: var(--serif); font-size: 25px; line-height: 30px; font-weight: 600; }
+      .name { font-family: var(--serif); font-size: 20px; line-height: 26px; font-weight: 600; }
       .label { font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
       .who .label { margin-top: 4px; }
       .headBtns { display: flex; gap: 8px; flex: none; }
@@ -44,16 +44,18 @@
       .subHeader .title { font-family: var(--serif); font-size: 23px; line-height: 30px; font-weight: 600; }
       .subHeader .label { margin-left: auto; }
 
-      /* small icon buttons: a darker shade of the paper */
+      /* header icon buttons (Settings, Search's delete): the CTA style at 44 by 44, icon in ink */
       .iconBtn {
-        flex: none; width: 40px; height: 40px; border-radius: 10px; background: var(--btn); color: var(--ink);
+        flex: none; width: 44px; height: 44px; border-radius: 14px; background: var(--off); color: var(--ink-2);
+        border: 1.5px solid var(--border); box-shadow: 0 8px 14px -8px rgba(60, 50, 40, 0.3);
         display: flex; align-items: center; justify-content: center;
       }
-      .iconBtn svg { width: 18px; height: 18px; }
-      .iconBtn.back { width: auto; height: auto; background: none; border-radius: 0; color: var(--label); }
+      .iconBtn svg { width: 20px; height: 20px; }
+      .iconBtn:hover { border-color: var(--ink-2); color: var(--ink); box-shadow: inset 0 0 0 0.5px var(--ink-2), 0 8px 14px -8px rgba(60, 50, 40, 0.3); }
+      /* the back arrow is not a button shape: just the arrow */
+      .iconBtn.back { width: auto; height: auto; background: none; border: none; box-shadow: none; border-radius: 0; color: var(--label); }
       .iconBtn.back svg { width: 20px; height: 20px; }
-      .iconBtn:hover { background: var(--btn-hover); }
-      .iconBtn.back:hover { background: none; opacity: 0.6; }
+      .iconBtn.back:hover { background: none; box-shadow: none; opacity: 0.6; }
 
       /* CTAs: off-white, thin border, rounded, a soft shadow underneath */
       .cta, .pillBtn, .primaryBtn {
@@ -62,7 +64,11 @@
         border: 1.5px solid var(--border); border-radius: 14px; box-shadow: 0 8px 14px -8px rgba(60, 50, 40, 0.3);
       }
       .cta svg, .pillBtn svg, .primaryBtn svg { width: 22px; height: 22px; stroke: var(--ink-2); }
-      .cta:hover:not(:disabled), .pillBtn:hover:not(:disabled), .primaryBtn:hover:not(:disabled) { background: #fff9ee; }
+      /* hover: a darker outline, 0.5px thicker (drawn inside, so nothing shifts), and darker text and icon; the fill stays */
+      .cta:hover:not(:disabled), .pillBtn:hover:not(:disabled), .primaryBtn:hover:not(:disabled) {
+        border-color: var(--ink-2); color: var(--ink); box-shadow: inset 0 0 0 0.5px var(--ink-2), 0 8px 14px -8px rgba(60, 50, 40, 0.3);
+      }
+      .cta:hover:not(:disabled) svg, .pillBtn:hover:not(:disabled) svg, .primaryBtn:hover:not(:disabled) svg { stroke: var(--ink); }
       .cta:disabled, .primaryBtn:disabled { cursor: default; }
 
       .list, .body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
@@ -137,7 +143,6 @@
       /* Search's delete icon and select mode */
       .searchTitleWrap { flex: 1; min-width: 0; }
       .searchTitleWrap .label { margin-top: 4px; margin-left: 0; }
-      .iconBtn.deleteBtn { color: #b4544f; }
       .selectHeader { justify-content: space-between; }
       .selectHeader .title { position: relative; top: -2px; font-size: 20px; }
       .textBtn { font-size: 14px; font-weight: 400; color: var(--muted); }
@@ -158,7 +163,7 @@
 
       /* today's-word banner: a yellow sticky note stuck on the ruled paper, for a widget closed without saving. Gone
          once the word is saved or the day turns over. Its height snaps to whole ruled rows (see snapToRules). */
-      .todayBanner { flex: none; display: flow-root; background: var(--ruled); }
+      .todayBanner { position: relative; flex: none; display: flow-root; background: var(--ruled); }
       .noteCard {
         position: relative; z-index: 1; margin: 16px 30px 0 var(--padL); padding: 24px 18px 20px; background: #faf2cb; border-radius: 2px;
         transform: rotate(-0.8deg); transform-origin: 50% 0;
@@ -191,7 +196,11 @@
         background: #e3f1e6; border-radius: 2px; transform: rotate(-0.8deg); transform-origin: 50% 0; color: #3e7a58;
         box-shadow: 0 1px 1px rgba(40, 70, 50, 0.1), 0 12px 16px -9px rgba(40, 70, 50, 0.34);
       }
-      .addedIcon { flex: none; display: flex; }
+      /* While the sticker lands (ui/stickOn.ts) the spin wrapper floats over the yellow note, hinged at its right edge */
+      .addedSpin.sticking { position: absolute; left: var(--padL); right: 30px; top: 16px; z-index: 3; transform-origin: 100% 50%; pointer-events: none; }
+      .addedSpin.sticking .addedCard { margin: 0; animation: none; }
+      .addedShade { position: absolute; inset: 0; border-radius: 2px; pointer-events: none; opacity: 0; background: linear-gradient(to right, rgba(30, 50, 40, 0.3), rgba(30, 50, 40, 0) 75%); }
+      .addedIcon { position: relative; flex: none; display: flex; }
       .addedIcon svg { width: 24px; height: 24px; }
       .addedTitle { font-size: 14px; font-weight: 600; line-height: 18px; }
       .addedSub { margin-top: 2px; font-size: 12px; line-height: 16px; color: var(--muted); }
@@ -229,7 +238,7 @@
         .panel.enter { animation: panelIn 240ms var(--ease); }
         .addedCard, .addCard:not([hidden]), .addBtn:not([hidden]) { animation: fadeUp 240ms var(--ease); }
         .deleteDrawer { animation: drawerUp 240ms var(--ease); }
-        .iconBtn, .cta, .pillBtn, .primaryBtn, .noteAdd, .chip, .checkbox, .textBtn, .deleteDrawerBtn { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, opacity 160ms ease; }
+        .iconBtn, .cta, .pillBtn, .primaryBtn, .noteAdd, .chip, .checkbox, .textBtn, .deleteDrawerBtn { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease; }
       }
     </style>
   </head>

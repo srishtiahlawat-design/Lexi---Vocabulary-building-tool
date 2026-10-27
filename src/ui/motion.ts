@@ -51,7 +51,8 @@ export function animateHeight(el: HTMLElement, from: number, to: number, ms: num
 
 // Fades an element out while its height closes up, then removes it: whatever sits below glides up into the gap
 // instead of jumping. Resolves once the element is gone.
-export function collapseAndRemove(el: HTMLElement, ms: number = MOTION.slow): Promise<void> {
+// `lift` also raises it by that many px as it goes (the banner's confirmation lifts away like a sticky note).
+export function collapseAndRemove(el: HTMLElement, ms: number = MOTION.slow, lift = 0): Promise<void> {
   if (!canAnimate(el)) {
     el.remove();
     return Promise.resolve();
@@ -62,8 +63,8 @@ export function collapseAndRemove(el: HTMLElement, ms: number = MOTION.slow): Pr
   el.style.minHeight = "0px";
   const animation = el.animate(
     [
-      { height: `${height}px`, opacity: 1 },
-      { height: "0px", opacity: 0 },
+      { height: `${height}px`, opacity: 1, ...(lift ? { transform: "translateY(0)" } : {}) },
+      { height: "0px", opacity: 0, ...(lift ? { transform: `translateY(${-lift}px)` } : {}) },
     ],
     { duration: ms, easing: MOTION.ease, fill: "forwards" }
   );
