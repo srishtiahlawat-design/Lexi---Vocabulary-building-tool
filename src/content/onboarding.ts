@@ -75,7 +75,8 @@ const CSS = `
   .back { flex: none; height: 46px; padding: 0 12px 0 0; display: flex; align-items: center; gap: 8px; font: 400 14px var(--sans); color: var(--ink-2); }
   .back svg { width: 18px; height: 18px; }
   .next { flex: 1; }
-  .next:hover:not(:disabled), .google:hover:not(:disabled) { background: #FFF9EE; }
+  /* hover: darker, 0.5px thicker outline (drawn inside, nothing shifts) and darker text; the fill stays */
+  .next:hover:not(:disabled), .google:hover:not(:disabled) { border-color: #45423E; color: #171717; box-shadow: inset 0 0 0 0.5px #45423E, 0 8px 14px -8px rgba(60,50,40,0.30); }
   .next:disabled { opacity: 0.5; cursor: default; }
   .err { margin: 10px 32px 0; font: 400 12px/16px var(--sans); color: #A33333; }
   .err:empty { display: none; }
@@ -85,7 +86,7 @@ const CSS = `
     .dialog.intro { animation: lexiPop 260ms cubic-bezier(0.22, 0.9, 0.3, 1); }
     .dialog:not(.intro) .body > * { animation: lexiStep 240ms cubic-bezier(0.22, 0.9, 0.3, 1) backwards; }
     .scrim { animation: lexiScrim 260ms ease-out; }
-    .next, .google { transition: background-color 160ms ease, opacity 160ms ease; }
+    .next, .google { transition: border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, opacity 160ms ease; }
   }
   @keyframes lexiPop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
   @keyframes lexiStep { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

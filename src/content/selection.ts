@@ -53,10 +53,9 @@ function injectStyles(root: ShadowRoot): void {
     /* eased in rather than snapping on: a short fade and rise (same easing as the rest of the extension) */
     @keyframes lexiPopoverIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
     @media (prefers-reduced-motion: no-preference) { .popover { animation: lexiPopoverIn 160ms cubic-bezier(0.22, 0.9, 0.3, 1); } }
-    .action { transition: background-color 160ms ease, color 160ms ease; }
+    .action { transition: border-color 160ms ease, color 160ms ease, box-shadow 160ms ease; }
     .brand { display: flex; align-items: center; gap: 7px; }
     .brand svg { display: block; }
-    .label { font-size: 9px; font-weight: 500; letter-spacing: 0.14em; color: #66615A; text-transform: uppercase; }
     .closeBtn { color: #252525; cursor: pointer; background: none; border: none; padding: 0; display: flex; }
     .closeBtn svg { width: 12px; height: 12px; }
     /* the word in the display font with its part of speech right beside it, baseline-aligned */
@@ -79,7 +78,8 @@ function injectStyles(root: ShadowRoot): void {
       margin: 12px 17px 14px 34px; font-size: 12px; font-weight: 400; color: #45423E; background: var(--off);
       border: 1.5px solid var(--border); border-radius: 10px; box-shadow: 0 6px 10px -6px rgba(60,50,40,0.30);
       cursor: pointer; font-family: inherit; white-space: nowrap; }
-    .action:hover:not(:disabled) { background: #FFF9EE; }
+    /* hover: darker, 0.5px thicker outline (drawn inside, nothing shifts) and darker text; the fill stays */
+    .action:hover:not(:disabled) { border-color: #45423E; color: #171717; box-shadow: inset 0 0 0 0.5px #45423E, 0 6px 10px -6px rgba(60,50,40,0.30); }
     .action svg { width: 14px; height: 14px; }
     .action.saved { color: #4F7053; border-color: rgba(79,112,83,0.45); box-shadow: none; cursor: default; }
     .action:disabled { cursor: default; opacity: 0.75; }
@@ -105,7 +105,7 @@ function showPopover(selectedText: string, rect: DOMRect): void {
   popover.innerHTML = `
     <div class="caret"></div>
     <div class="row">
-      <span class="brand">${logoMarkSvg(18)}<span class="label">Selected</span></span>
+      <span class="brand">${logoMarkSvg(18)}</span>
       <button class="closeBtn" aria-label="Close">${ICON_CLOSE_THIN}</button>
     </div>
     <div class="word"><span class="wordText"></span></div>
