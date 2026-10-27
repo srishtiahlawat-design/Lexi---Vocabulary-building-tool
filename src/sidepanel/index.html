@@ -95,7 +95,7 @@
       .rowBody .pron, .cardBody .pron { font-family: var(--serif); font-size: 14px; color: var(--ink-2); }
       /* Klee One has no italic: the part of speech is set in the body font, in a lighter colour */
       .rowBody .pron i, .cardBody .pron i { margin-left: 10px; font-style: normal; font-family: var(--sans); font-size: 13px; color: var(--muted); }
-      .rowBody .full, .cardBody .full { margin-top: 8px; font-family: var(--sans); font-size: 14px; line-height: 22px; font-weight: 400; color: var(--ink-2); }
+      .rowBody .full, .cardBody .full { margin-top: 8px; font-family: var(--sans); font-size: 14px; line-height: 22px; font-weight: 400; color: #66615a; }
       /* up to three similar words, each in a hand-drawn outline */
       .simRow { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
       .simLabel { margin-right: 4px; font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
@@ -198,7 +198,7 @@
       }
       /* While the sticker lands (ui/stickOn.ts) the spin wrapper floats over the yellow note, hinged at its right edge */
       .addedSpin.sticking { position: absolute; left: var(--padL); right: 30px; top: 16px; z-index: 3; transform-origin: 100% 50%; pointer-events: none; }
-      .addedSpin.sticking .addedCard { margin: 0; animation: none; }
+      .addedSpin.sticking .addedCard { margin: 0; }
       .addedShade { position: absolute; inset: 0; border-radius: 2px; pointer-events: none; opacity: 0; background: linear-gradient(to right, rgba(30, 50, 40, 0.3), rgba(30, 50, 40, 0) 75%); }
       .addedIcon { position: relative; flex: none; display: flex; }
       .addedIcon svg { width: 24px; height: 24px; }
@@ -236,7 +236,7 @@
       @keyframes drawerUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
       @media (prefers-reduced-motion: no-preference) {
         .panel.enter { animation: panelIn 240ms var(--ease); }
-        .addedCard, .addCard:not([hidden]), .addBtn:not([hidden]) { animation: fadeUp 240ms var(--ease); }
+        .addCard:not([hidden]), .addBtn:not([hidden]) { animation: fadeUp 240ms var(--ease); }
         .deleteDrawer { animation: drawerUp 240ms var(--ease); }
         .iconBtn, .cta, .pillBtn, .primaryBtn, .noteAdd, .chip, .checkbox, .textBtn, .deleteDrawerBtn { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease; }
       }

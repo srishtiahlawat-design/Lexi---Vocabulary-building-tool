@@ -78,6 +78,24 @@ function snapToRules(el: HTMLElement): void {
   if (h > 0) el.style.minHeight = `${Math.ceil(h / RULE_PITCH) * RULE_PITCH}px`;
 }
 
+// The panel can be resized by the user (and it settles to its width after the first render), which re-wraps the note and
+// changes its height: keep the banner a whole number of rows tall so the rules below stay on the grid.
+function keepSnapped(banner: HTMLElement): void {
+  if (typeof ResizeObserver === "undefined") return;
+  let first = true;
+  const observer = new ResizeObserver(() => {
+    if (first) {
+      first = false;
+      return;
+    }
+    if (!banner.isConnected) return observer.disconnect();
+    if (stickBusy || banner.getAnimations().length) return;
+    snapToRules(banner);
+  });
+  for (const child of Array.from(banner.children)) observer.observe(child);
+  observer.observe(app);
+}
+
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -126,6 +144,11 @@ async function render(): Promise<void> {
   const prevBanner = sameScreen ? app.querySelector<HTMLElement>(".todayBanner") : null;
   const prevBannerHeight = prevBanner?.offsetHeight ?? null;
 
+  // The confirmation already on screen is kept as the same element rather than rebuilt: a rebuilt one would flash
+  // away and play its sticking-on again.
+  const nextBanner = next.querySelector<HTMLElement>(".todayBanner");
+  if (justAdded && prevBanner?.querySelector(".addedCard") && nextBanner?.querySelector(".addedCard")) nextBanner.replaceWith(prevBanner);
+
   app.replaceChildren(next);
   renderedView = view;
 
@@ -153,6 +176,7 @@ async function render(): Promise<void> {
           row: firstRow?.querySelector(".word")?.textContent?.toLowerCase() === justAdded.toLowerCase() ? firstRow : null,
           onDone: () => {
             stickBusy = false;
+            keepSnapped(banner);
             if (renderQueued) {
               renderQueued = false;
               void render();
@@ -167,6 +191,7 @@ async function render(): Promise<void> {
       const height = banner.offsetHeight;
       if (Math.abs(height - prevBannerHeight) > 1) void animateHeight(banner, prevBannerHeight, height);
     }
+    if (banner) keepSnapped(banner);
   }
 }
 
@@ -424,7 +449,7 @@ async function renderTodayWordBanner(all: CompactWordRecord[]): Promise<HTMLDivE
       <div class="noteSim" hidden><span class="noteSimLabel">Similar</span></div>
       <div class="noteEx" hidden><span class="noteExLabel">Example</span><span class="noteExText"></span></div>
     </div>
-    <div class="noteCaption">${NOTE_STAR}<span>Add it before the day ends.</span></div>
+    <div class="noteCaption">${NOTE_STAR}<span>Add the word before the day ends.</span></div>
     <div class="err"></div>
   `;
   wrap.querySelector(".nw")!.textContent = record.word;
