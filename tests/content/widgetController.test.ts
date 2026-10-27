@@ -107,11 +107,13 @@ describe("createWidgetHost", () => {
     host.update(view(false));
     expect(document.querySelectorAll("#lexi-widget-host")).toHaveLength(1);
     const root = document.getElementById("lexi-widget-host")!.shadowRoot!;
-    expect(root.querySelector(".card")).not.toBeNull();
+    const shell = root.querySelector(".shell")!;
+    expect(shell.classList.contains("collapsed")).toBe(false);
 
+    // minimising morphs the same element (so the CSS can glide) instead of redrawing it
     host.update(view(true));
-    expect(root.querySelector(".pill")).not.toBeNull();
-    expect(root.querySelector(".pill")!.classList.contains("settle")).toBe(true);
+    expect(root.querySelector(".shell")).toBe(shell);
+    expect(shell.classList.contains("collapsed")).toBe(true);
 
     host.update(null);
     expect(document.getElementById("lexi-widget-host")).toBeNull();
@@ -128,8 +130,7 @@ describe("createWidgetHost", () => {
   it("does not animate a widget that is simply there when a page loads", () => {
     document.body.innerHTML = "";
     createWidgetHost(handlers).update(view(false));
-    const card = document.getElementById("lexi-widget-host")!.shadowRoot!.querySelector(".card")!;
-    expect(card.classList.contains("enter")).toBe(false);
-    expect(card.classList.contains("unfold")).toBe(false);
+    const shell = document.getElementById("lexi-widget-host")!.shadowRoot!.querySelector(".shell")!;
+    expect(shell.classList.contains("enter")).toBe(false);
   });
 });

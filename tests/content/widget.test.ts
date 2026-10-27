@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { renderWidget, fitWord, u, WORD_SIZES } from "../../src/content/widget";
+import { renderWidget, fitWord, setCollapsed, u, WORD_SIZES, CARD_WIDTH, PILL_HEIGHT } from "../../src/content/widget";
 
 function makeHandlers() {
   return { onClose: vi.fn(), onToggleCollapse: vi.fn(), onSave: vi.fn().mockResolvedValue(undefined) };
@@ -110,13 +110,56 @@ describe("renderWidget", () => {
     expect(root.querySelector(".widgetErr")?.textContent).toBe("no key");
   });
 
-  it("renders only the word in a pill when collapsed", () => {
+  it("draws the collapsed pill as the same shape with the card inert", () => {
     const host = document.createElement("div");
     const root = host.attachShadow({ mode: "open" });
     renderWidget(root, makeData(), makeHandlers(), true);
 
     expect(root.querySelector(".pillWord")?.textContent).toBe("ephemeral");
-    expect(root.querySelector(".card")).toBeNull();
+    expect(root.querySelector(".shell")?.classList.contains("collapsed")).toBe(true);
+    expect(root.querySelector(".card")?.hasAttribute("inert")).toBe(true);
+    expect(root.querySelector(".pill")?.getAttribute("aria-hidden")).toBe("false");
+  });
+
+  it("morphs: setCollapsed toggles the same element instead of redrawing it", () => {
+    const root = document.createElement("div").attachShadow({ mode: "open" });
+    renderWidget(root, makeData(), makeHandlers(), false);
+    const shell = root.querySelector(".shell")!;
+    expect(shell.classList.contains("collapsed")).toBe(false);
+    expect(root.querySelector(".card")?.hasAttribute("inert")).toBe(false);
+    expect(root.querySelector(".pill")?.getAttribute("aria-hidden")).toBe("true");
+
+    setCollapsed(root, true);
+    expect(root.querySelector(".shell")).toBe(shell);
+    expect(shell.classList.contains("collapsed")).toBe(true);
+    expect(root.querySelector(".card")?.hasAttribute("inert")).toBe(true);
+
+    setCollapsed(root, false);
+    expect(shell.classList.contains("collapsed")).toBe(false);
+  });
+
+  it("is 320px wide and hugs its content: no minimum height and no footer pushed to the bottom", () => {
+    const root = document.createElement("div").attachShadow({ mode: "open" });
+    renderWidget(root, makeData(), makeHandlers(), false);
+    const css = root.querySelector("style")!.textContent!;
+    expect(CARD_WIDTH).toBe(320);
+    expect(css).toContain(`width: ${CARD_WIDTH}px`);
+    expect(css).not.toContain("margin-top: auto");
+    expect(css).not.toContain(`min-height: ${u(579)}`);
+    expect(css).toContain(`min-height: ${PILL_HEIGHT}px`); // the pill's height is the only floor
+    // the fade behind the button covers the footer only, so it can never reach the last sentence
+    expect(css).toMatch(/\.footer::before \{[^}]*top: 0;/);
+  });
+
+  it("darkens the CTA outline and text on hover without changing its fill", () => {
+    const root = document.createElement("div").attachShadow({ mode: "open" });
+    renderWidget(root, makeData(), makeHandlers(), false);
+    const css = root.querySelector("style")!.textContent!;
+    const hover = css.match(/\.saveBtn:hover:not\(:disabled\) \{([^}]*)\}/)![1];
+    expect(hover).toContain("border-color: #45423E");
+    expect(hover).toContain("color: #171717");
+    expect(hover).toContain("inset 0 0 0 0.5px #45423E");
+    expect(hover).not.toContain("background");
   });
 
   it("has no word-number row: the finalised widget goes straight from header to word", () => {
@@ -135,7 +178,7 @@ describe("renderWidget", () => {
     const css = root.querySelector("style")!.textContent!;
     expect(css).toContain("transparent 0 35px, var(--rule) 35px 36px");
     expect(css).toContain(`left: ${u(40)}`); // the margin line sits 40 canvas px from the left
-    expect(css).toContain(`top: ${u(116)}`); // lines start 32 canvas px under the 84px header
+    expect(css).toContain(`top: calc(${u(116)} - 8px)`); // lines start 8px above the old mark under the 84px header
   });
 
   it("uses the bundled fonts: Klee One for the word, Geist for the labels, meaning and part of speech", () => {
@@ -177,10 +220,10 @@ describe("renderWidget", () => {
     const root = host.attachShadow({ mode: "open" });
 
     renderWidget(root, makeData(), makeHandlers(), false);
-    expect(root.querySelector(".card")?.classList.contains("enter")).toBe(false);
+    expect(root.querySelector(".shell")?.classList.contains("enter")).toBe(false);
 
     renderWidget(root, makeData(), makeHandlers(), false, { animate: true });
-    expect(root.querySelector(".card")?.classList.contains("enter")).toBe(true);
+    expect(root.querySelector(".shell")?.classList.contains("enter")).toBe(true);
   });
 
   it("calls onToggleCollapse when the collapsed pill is clicked", () => {
