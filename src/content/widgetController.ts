@@ -12,6 +12,8 @@ export interface ControllerDeps {
   save(): Promise<void>;
   today(): string;
   host: WidgetHost;
+  // How long the "Added to my library" confirmation stays before the widget closes everywhere. Default 1600ms.
+  savedCloseDelayMs?: number;
 }
 
 export function createWidgetController(deps: ControllerDeps) {
@@ -45,6 +47,9 @@ export function createWidgetController(deps: ControllerDeps) {
     onSave: async () => {
       await deps.save();
       await refresh();
+      // A saved word is done for the day: after the confirmation, close it in every tab (and keep it closed on
+      // tabs opened later) instead of leaving an expanded card to greet each new tab.
+      setTimeout(() => void setMode("closed"), deps.savedCloseDelayMs ?? 1600);
     },
   };
 

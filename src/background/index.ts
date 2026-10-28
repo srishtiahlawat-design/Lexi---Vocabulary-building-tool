@@ -102,6 +102,9 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
 // Chrome can terminate/restart the worker between calls — which is an
 // accepted limitation for v1.
 const inFlightTabs = new Set<number>();
+// The widget is global, so picking/announcing today's word must also happen once at a time across ALL tabs: two tabs
+// activated in quick succession would otherwise each re-announce the widget (and re-open it after it was closed).
+let announcing = false;
 
 // Loads the widget script into every open web page. Pages that already run it ignore the second copy (see the flag in
 // content/index.ts); pages Chrome won't let us script (chrome://, the Web Store, discarded tabs) simply fail quietly.
@@ -134,24 +137,35 @@ async function maybeShowWidget(tabId: number) {
     if (!hasArrived(new Date(), profile.arrivalTime)) return;
 
     if (!(await shouldInjectWidget({ lastShownStore: deps.lastShownStore, today: todayISO }))) return;
+    if (announcing) return;
+    announcing = true;
+    try {
+      await ensureTodayWord({
+        model: deps.model,
+        todayWordStore: deps.todayWordStore,
+        shownWordsStore: deps.shownWordsStore,
+        lastShownStore: deps.lastShownStore,
+        wordStore: deps.wordStore,
+        detailCache: deps.detailCache,
+        today: todayISO,
+        preference: profilePreference(profile),
+      });
 
-    await ensureTodayWord({
-      model: deps.model,
-      todayWordStore: deps.todayWordStore,
-      shownWordsStore: deps.shownWordsStore,
-      lastShownStore: deps.lastShownStore,
-      wordStore: deps.wordStore,
-      detailCache: deps.detailCache,
-      today: todayISO,
-      preference: profilePreference(profile),
-    });
-
-    // Show the widget in EVERY tab, not just this one: record today's shared state (tabs already running the widget
-    // script pick it up from storage instantly), then also load the script into tabs that were open before the
-    // extension was installed / reloaded and so don't have it yet. Tabs opened later get it from the manifest.
-    await createWidgetStateStore(chrome.storage.local).setState({ date: todayISO(), mode: "expanded" });
-    await injectWidgetIntoAllTabs();
-    await markWidgetShown({ lastShownStore: deps.lastShownStore, today: todayISO });
+      // Show the widget in EVERY tab, not just this one: record today's shared state (tabs already running the widget
+      // script pick it up from storage instantly), then also load the script into tabs that were open before the
+      // extension was installed / reloaded and so don't have it yet. Tabs opened later get it from the manifest.
+      // Never overwrite today's state if it already exists: the user may have closed, saved or minimised the widget
+      // while the word was being picked, and that choice has to stick for the rest of the day in every tab.
+      const widgetStateStore = createWidgetStateStore(chrome.storage.local);
+      const existing = await widgetStateStore.getState();
+      if (!existing || existing.date !== todayISO()) {
+        await widgetStateStore.setState({ date: todayISO(), mode: "expanded" });
+      }
+      await markWidgetShown({ lastShownStore: deps.lastShownStore, today: todayISO });
+      await injectWidgetIntoAllTabs();
+    } finally {
+      announcing = false;
+    }
   } catch (err) {
     console.error("Lexi: failed to show widget", err);
   } finally {

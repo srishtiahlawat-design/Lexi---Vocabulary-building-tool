@@ -134,3 +134,20 @@ describe("createWidgetHost", () => {
     expect(shell.classList.contains("enter")).toBe(false);
   });
 });
+
+describe("widget controller: saving", () => {
+  it("closes the widget in every tab after a save, so new tabs don't reopen it", async () => {
+    let state: WidgetState | null = { date: TODAY, mode: "expanded" };
+    const host: WidgetHost = { update: () => {} };
+    const controller = createWidgetController({
+      state: { get: async () => state, set: async (s) => void (state = s) },
+      todayWord: async () => ({ data: DATA, saved: true }),
+      save: async () => {},
+      today: () => TODAY,
+      host,
+      savedCloseDelayMs: 0,
+    });
+    await controller.handlers.onSave();
+    await vi.waitFor(() => expect(state?.mode).toBe("closed"));
+  });
+});
