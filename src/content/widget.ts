@@ -327,7 +327,9 @@ export function createWidgetHost(handlers: WidgetHandlers): WidgetHost {
       const onlyCollapsedChanged =
         !created && lastView !== null && lastView.saved === view.saved && lastView.collapsed !== view.collapsed &&
         JSON.stringify(lastView.data) === JSON.stringify(view.data);
-      if (onlyCollapsedChanged) {
+      // A tab in the background doesn't run the morph until it is next shown, so it would play late, when you switch
+      // to it. Redraw those tabs straight into the final state instead, so they simply look finished.
+      if (onlyCollapsedChanged && document.visibilityState !== "hidden") {
         setCollapsed(shadow!, view.collapsed);
       } else {
         // slide in only when it newly appears live
